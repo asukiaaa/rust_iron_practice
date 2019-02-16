@@ -7,6 +7,8 @@ edition = "2018"
 [dependencies]
 time = "0.1"
 router = "0.6"
+handlebars-iron = "0.27"
+params = "0.8"
 
 [dependencies.iron]
-version = "*"
+version = "0.6.0"

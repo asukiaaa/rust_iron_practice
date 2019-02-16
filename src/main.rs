@@ -1,11 +1,16 @@
 extern crate iron;
+extern crate params;
 extern crate time;
 
+use handlebars_iron as hbs;
+use hbs::{DirectorySource, HandlebarsEngine, Template};
 use iron::prelude::*;
 use iron::status;
 use iron::{typemap, AfterMiddleware, BeforeMiddleware};
-use time::precise_time_ns;
+use params::{Params, Value};
 use router::Router;
+use std::collections::HashMap;
+use time::precise_time_ns;
 
 struct ResponseTime;
 
@@ -26,20 +31,42 @@ impl AfterMiddleware for ResponseTime {
     }
 }
 
+fn hello_handler(_: &mut Request) -> IronResult<Response> {
+    let mut resp = Response::new();
+    let mut data: HashMap<String, String> = HashMap::new();
+    resp.set_mut(Template::new("hello", data)).set_mut(status::Ok);
+    Ok(resp)
+}
+
+fn hello_again_handler(req: &mut Request) -> IronResult<Response> {
+    let mut resp = Response::new();
+    let mut data: HashMap<String, String> = HashMap::new();
+    let params = req.get_ref::<Params>().unwrap();
+    match params.find(&["name"]) {
+        Some(&Value::String(ref name)) => {
+            data.insert("name".to_string(), name.to_string());
+        },
+        _ => {}
+    };
+    resp.set_mut(Template::new("hello_again", data)).set_mut(status::Ok);
+    Ok(resp)
+}
+
 fn main() {
     let mut router = Router::new();
+    let mut hbse = HandlebarsEngine::new();
+    hbse.add(Box::new(DirectorySource::new("./templates", ".hbs")));
+    if let Err(r) = hbse.reload() {
+        panic!("{}", r);
+    }
 
     router.get("/".to_string(), |_: &mut Request| {
         Ok(Response::with((status::Ok, "It's root page")))
     }, "root");
 
-    router.get("/hello".to_string(), |_: &mut Request| {
-        Ok(Response::with((status::Ok, "Hello world !")))
-    }, "hello");
+    router.get("/hello".to_string(), hello_handler, "hello");
 
-    router.get("/hello/again".to_string(), |_: &mut Request| {
-        Ok(Response::with((status::Ok, "Hello again !")))
-    }, "helloAgain");
+    router.get("/hello/again".to_string(), hello_again_handler, "helloAgain");
 
     router.get("/error".to_string(), |_: &mut Request| {
         Ok(Response::with(status::BadRequest))
@@ -48,5 +75,6 @@ fn main() {
     let mut chain = Chain::new(router);
     chain.link_before(ResponseTime);
     chain.link_after(ResponseTime);
+    chain.link_after(hbse);
     Iron::new(chain).http("localhost:3000");
 }
