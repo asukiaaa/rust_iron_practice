@@ -31,16 +31,22 @@ impl AfterMiddleware for ResponseTime {
     }
 }
 
+fn create_data() -> HashMap<String, String> {
+    let mut data = HashMap::new();
+    data.insert("layout".to_string(), "layouts/default".to_string());
+    data
+}
+
 fn hello_handler(_: &mut Request) -> IronResult<Response> {
     let mut resp = Response::new();
-    let mut data: HashMap<String, String> = HashMap::new();
+    let data = create_data();
     resp.set_mut(Template::new("hello", data)).set_mut(status::Ok);
     Ok(resp)
 }
 
 fn hello_again_handler(req: &mut Request) -> IronResult<Response> {
     let mut resp = Response::new();
-    let mut data: HashMap<String, String> = HashMap::new();
+    let mut data = create_data();
     let params = req.get_ref::<Params>().unwrap();
     match params.find(&["name"]) {
         Some(&Value::String(ref name)) => {
