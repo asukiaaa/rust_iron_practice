@@ -3,10 +3,9 @@ extern crate time;
 
 use iron::prelude::*;
 use iron::status;
-use iron::Handler;
 use iron::{typemap, AfterMiddleware, BeforeMiddleware};
 use time::precise_time_ns;
-use std::collections::HashMap;
+use router::Router;
 
 struct ResponseTime;
 
@@ -27,53 +26,24 @@ impl AfterMiddleware for ResponseTime {
     }
 }
 
-fn hello_world(_: &mut Request) -> IronResult<Response> {
-    Ok(Response::with((status::Ok, "Hello World")))
-}
-
-struct Router {
-    // Routes here are simply matched with the url path.
-    routes: HashMap<String, Box<Handler>>,
-}
-
-impl Router {
-    fn new() -> Self {
-        Router {
-            routes: HashMap::new(),
-        }
-    }
-
-    fn add_route<H>(&mut self, path: String, handler: H)
-    where
-        H: Handler,
-    {
-        self.routes.insert(path, Box::new(handler));
-    }
-}
-
-impl Handler for Router {
-    fn handle(&self, req: &mut Request) -> IronResult<Response> {
-        match self.routes.get(&req.url.path().join("/")) {
-            Some(handler) => handler.handle(req),
-            None => Ok(Response::with(status::NotFound)),
-        }
-    }
-}
-
 fn main() {
     let mut router = Router::new();
 
-    router.add_route("hello".to_string(), |_: &mut Request| {
+    router.get("/".to_string(), |_: &mut Request| {
+        Ok(Response::with((status::Ok, "It's root page")))
+    }, "root");
+
+    router.get("/hello".to_string(), |_: &mut Request| {
         Ok(Response::with((status::Ok, "Hello world !")))
-    });
+    }, "hello");
 
-    router.add_route("hello/again".to_string(), |_: &mut Request| {
+    router.get("/hello/again".to_string(), |_: &mut Request| {
         Ok(Response::with((status::Ok, "Hello again !")))
-    });
+    }, "helloAgain");
 
-    router.add_route("error".to_string(), |_: &mut Request| {
+    router.get("/error".to_string(), |_: &mut Request| {
         Ok(Response::with(status::BadRequest))
-    });
+    }, "error");
 
     let mut chain = Chain::new(router);
     chain.link_before(ResponseTime);

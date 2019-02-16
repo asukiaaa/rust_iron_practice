@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 time = "0.1"
+router = "0.6"
 
 [dependencies.iron]
 version = "*"
