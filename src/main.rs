@@ -99,5 +99,7 @@ fn main() {
     chain.link_before(ResponseTime);
     chain.link_after(ResponseTime);
     chain.link_after(hbse);
-    Iron::new(chain).http("0.0.0.0:80");
+    if let Err(r) = Iron::new(chain).http("0.0.0.0:80") {
+        panic!("{}", r);
+    }
 }
