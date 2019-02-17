@@ -9,6 +9,8 @@ time = "0.1"
 router = "0.6"
 handlebars-iron = "0.27"
 params = "0.8"
+staticfile = "0.5"
+mount = "0.4"
 
 [dependencies.iron]
 version = "0.6.0"

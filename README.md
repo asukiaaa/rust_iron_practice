@@ -12,3 +12,6 @@
 - [handlebars-rust/examples/partials/base0.hbs](https://github.com/sunng87/handlebars-rust/blob/master/examples/partials/base0.hbs)
 - [handlebars-rust/examples/partials/template2.hbs](https://github.com/sunng87/handlebars-rust/blob/master/examples/partials/template2.hbs)
 - [handlebars](https://handlebarsjs.com/partials.html)
+- [Rust’s Iron Framework: Serving Static Content](https://medium.com/@ericdreichert/rusts-iron-framework-serving-static-content-e996186717b7)
+- [IronでWebサービスを作るために必要だったもの](https://qiita.com/nacika_ins/items/fa1a8a72d78398dc4661)
+- [Download - Bootstrap(4.3)](https://getbootstrap.com/docs/4.3/getting-started/download/)
