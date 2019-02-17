@@ -99,5 +99,5 @@ fn main() {
     chain.link_before(ResponseTime);
     chain.link_after(ResponseTime);
     chain.link_after(hbse);
-    Iron::new(chain).http("localhost:3000");
+    Iron::new(chain).http("0.0.0.0:80");
 }

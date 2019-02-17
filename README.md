@@ -1,5 +1,38 @@
 # rust_iron_practice
 
+# Debug
+```
+cargo run
+sudo target/debug/rust_iron_practice
+```
+
+# Release for armv7 (Raspberry Pi 2, 3)
+
+## Setup
+```
+rustup target add armv7-unknown-linux-gnueabihf
+sudo apt install gcc-arm-linux-gnueabihf
+echo "
+[target.armv7-unknown-linux-gnueabihf]
+linker = "arm-linux-gnueabihf-gcc"
+" >> ~/.cargo/config
+```
+
+## Release
+```
+./scripts/release_armv7.sh
+```
+
+Send `armv7.zip` for ARM device.
+
+## Use
+On ARM device.
+```
+unzip armv7.zip
+cd armv7
+sudo ./rust_iron_practice
+```
+
 # References
 - [examples/time](https://github.com/iron/iron/blob/master/examples/time.rs)
 - [RustでWebプログラミング No.2 ~ Routerをつかって複数ルート~](http://poketo7878-dev.hatenablog.com/entry/2016/09/24/112929)
