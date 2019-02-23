@@ -5,12 +5,12 @@ authors = ["Asuk Kono <asukiaaa@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-time = "0.1"
-router = "0.6"
 handlebars-iron = "0.27"
-params = "0.8"
-staticfile = "0.5"
+handlebars = "1.1"
+iron = "0.6"
 mount = "0.4"
-
-[dependencies.iron]
-version = "0.6.0"
+params = "0.8"
+router = "0.6"
+staticfile = "0.5"
+serde_json = "1.0"
+time = "0.1"

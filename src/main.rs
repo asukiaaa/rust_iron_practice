@@ -11,10 +11,12 @@ use iron::{typemap, AfterMiddleware, BeforeMiddleware};
 use mount::Mount;
 use params::{Params, Value};
 use router::Router;
+use serde_json::{Value as Json};
 use staticfile::Static;
 use std::collections::HashMap;
 use std::path::Path;
 use time::precise_time_ns;
+use handlebars::to_json;
 
 struct Middleware;
 
@@ -40,45 +42,42 @@ impl AfterMiddleware for Middleware {
     }
 }
 
-fn create_data() -> HashMap<String, String> {
+fn create_data(page_template_path: String) -> HashMap<String, Json> {
     let mut data = HashMap::new();
-    data.insert("layout".to_string(), "layouts/default".to_string());
+    data.insert("page_template_path".to_string(), to_json(page_template_path));
     data
 }
 
 fn root_handler(req: &mut Request) -> IronResult<Response> {
     let mut resp = Response::new();
-    let mut data = create_data();
-    data.insert("hello_url".to_string(), url_for!(req, "hello").to_string());
-    data.insert("hello_again_url".to_string(), url_for!(req, "hello_again").to_string());
+    let mut data = create_data("index".to_string());
+    data.insert("hello_url".to_string(), to_json(url_for!(req, "hello").to_string()));
+    data.insert("hello_again_url".to_string(), to_json(url_for!(req, "hello_again").to_string()));
     data.insert(
         "hello_again_bob_url".to_string(),
-        url_for!(req, "hello_again", "name" => "Bob").to_string()
+        to_json(url_for!(req, "hello_again", "name" => "Bob").to_string())
     );
-    resp.set_mut(Template::new("index", data)).set_mut(status::Ok);
+    resp.set_mut(Template::new("layouts/default", data)).set_mut(status::Ok);
     Ok(resp)
 }
 
 fn hello_handler(_: &mut Request) -> IronResult<Response> {
     let mut resp = Response::new();
-    let data = create_data();
-    resp.set_mut(Template::new("hello", data)).set_mut(status::Ok);
+    let data = create_data("hello".to_string());
+    resp.set_mut(Template::new("layouts/default", data)).set_mut(status::Ok);
     Ok(resp)
 }
 
 fn hello_again_handler(req: &mut Request) -> IronResult<Response> {
     let mut resp = Response::new();
-    let mut data = create_data();
+    let mut data = create_data("hello_again".to_string());
     let params = req.get_ref::<Params>().unwrap();
-    match params.find(&["name"]) {
-        Some(&Value::String(ref name)) => {
-            data.insert("name".to_string(), name.to_string());
-        },
-        _ => {
-            data.insert("name".to_string(), "".to_string());
-        }
+    let name = match params.find(&["name"]) {
+        Some(&Value::String(ref name)) => name,
+        _ => ""
     };
-    resp.set_mut(Template::new("hello_again", data)).set_mut(status::Ok);
+    data.insert("name".to_string(), to_json(name));
+    resp.set_mut(Template::new("layouts/default", data)).set_mut(status::Ok);
     Ok(resp)
 }
 
