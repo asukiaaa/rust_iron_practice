@@ -54,3 +54,5 @@ Access device ip through some browser.
 - [iron/params](https://github.com/iron/params)
 - [IronでWebサービスを作るために必要だったもの](https://qiita.com/nacika_ins/items/fa1a8a72d78398dc4661)
 - [Download - Bootstrap(4.3)](https://getbootstrap.com/docs/4.3/getting-started/download/)
+- [File hierarchy](https://doc.rust-lang.org/rust-by-example/mod/split.html)
+- [Implementing Serialize](https://serde.rs/impl-serialize.html)

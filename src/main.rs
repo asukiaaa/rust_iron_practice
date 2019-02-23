@@ -2,6 +2,7 @@ extern crate iron;
 extern crate params;
 #[macro_use] extern crate router;
 extern crate time;
+mod models;
 
 use handlebars_iron as hbs;
 use hbs::{DirectorySource, HandlebarsEngine, Template};
@@ -11,12 +12,14 @@ use iron::{typemap, AfterMiddleware, BeforeMiddleware};
 use mount::Mount;
 use params::{Params, Value};
 use router::Router;
+use serde::ser::{Serialize, Serializer, SerializeStruct};
 use serde_json::{Value as Json};
 use staticfile::Static;
 use std::collections::HashMap;
 use std::path::Path;
 use time::precise_time_ns;
 use handlebars::to_json;
+use models::user::User;
 
 struct Middleware;
 
@@ -81,6 +84,57 @@ fn hello_again_handler(req: &mut Request) -> IronResult<Response> {
     Ok(resp)
 }
 
+struct UserIndexInfo {
+    user: User,
+    show_url: String,
+}
+
+impl Serialize for UserIndexInfo {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("User", 2)?;
+        state.serialize_field("user", &self.user)?;
+        state.serialize_field("show_url", &self.show_url)?;
+        state.end()
+    }
+}
+
+fn users_handler(req: &mut Request) -> IronResult<Response> {
+    let mut resp = Response::new();
+    let mut data = create_data("users/index".to_string());
+    let users = User::find_all();
+    let users_info: Vec<_> = users.iter().map(|user| {
+        UserIndexInfo {
+            user: user.clone(),
+            show_url: url_for!(req, "user_show", "id" => user.id.to_string()).to_string(),
+        }
+    }).collect();
+    data.insert("users_info".to_string(), to_json(users_info));
+    resp.set_mut(Template::new("layouts/default", data)).set_mut(status::Ok);
+    Ok(resp)
+}
+
+fn user_handler(req: &mut Request) -> IronResult<Response> {
+    let mut resp = Response::new();
+    let mut data = create_data("users/show".to_string());
+    match req.extensions.get::<Router>().unwrap().find("id") {
+        Some(id) => {
+            data.insert("id".to_string(), to_json(id.to_string()));
+            match User::find(id.parse::<i32>().unwrap()) {
+                Some(user) => {
+                    data.insert("user".to_string(), to_json(user));
+                    // println!("user {:?}", user);
+                },
+                None => {}
+            }
+        },
+        None => {}
+    }
+    resp.set_mut(Template::new("layouts/default", data)).set_mut(status::Ok);
+    Ok(resp)
+}
+
 fn main() {
     let mut router = Router::new();
     let mut hbse = HandlebarsEngine::new();
@@ -93,6 +147,8 @@ fn main() {
     router.get("/".to_string(), root_handler, "root");
     router.get("/hello".to_string(), hello_handler, "hello");
     router.get("/hello/again".to_string(), hello_again_handler, "hello_again");
+    router.get("/users".to_string(), users_handler, "user_index");
+    router.get("/users/:id".to_string(), user_handler, "user_show");
     router.get("/error".to_string(), |_: &mut Request| {
         Ok(Response::with(status::BadRequest))
     }, "error");
@@ -106,6 +162,8 @@ fn main() {
     chain.link_before(Middleware);
     chain.link_after(hbse);
     chain.link_after(Middleware);
+    User::init_table();
+    User::find(1);
     if let Err(r) = Iron::new(chain).http("0.0.0.0:80") {
         panic!("{}", r);
     }

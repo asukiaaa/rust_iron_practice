@@ -1,0 +1,22 @@
+<table class="table">
+  <thead>
+    <th>id</th>
+    <th>name</th>
+    <th>email</th>
+    <th>time_created</th>
+    <th>actions</th>
+  </thead>
+  <tbody>
+  {{#each users_info}}
+    <tr>
+      <td>{{user.id}}</td>
+      <td>{{user.name}}</td>
+      <td>{{user.email}}</td>
+      <td>{{user.time_created}}</td>
+      <td>
+        <a href="{{show_url}}" class="btn btn-primary btn-sm">Show</a>
+      <td>
+    </tr>
+  {{/each}}
+  </tbody>
+</table>
