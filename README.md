@@ -2,7 +2,7 @@
 
 # Debug
 ```
-cargo run
+cargo build
 sudo target/debug/rust_iron_practice
 ```
 
