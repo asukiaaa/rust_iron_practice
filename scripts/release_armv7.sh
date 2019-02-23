@@ -1,12 +1,20 @@
 #!/bin/bash
+PROJECT_NAME=rust_iron_practice
+BUILD_TARGET=armv7-unknown-linux-gnueabihf
+RELEASE_DIR=armv7
 
-cargo build --target armv7-unknown-linux-gnueabihf --release
+cargo build --target ${BUILD_TARGET} --release
 
-if [ -d "releases/armv7" ]; then
-    rm -r releases/armv7
+if [ -d "releases/${RELEASE_DIR}" ]; then
+    rm -r releases/${RELEASE_DIR}
 fi
-mkdir -p releases/armv7
-cp target/armv7-unknown-linux-gnueabihf/release/rust_iron_practice releases/armv7/
-cp -r public releases/armv7/
-cp -r templates releases/armv7/
-zip -r releases/armv7.zip releases/armv7
+mkdir -p releases/${RELEASE_DIR}
+cp target/${BUILD_TARGET}/release/${PROJECT_NAME} releases/${RELEASE_DIR}/
+cp -r public releases/${RELEASE_DIR}/
+cp -r templates releases/${RELEASE_DIR}/
+cd releases
+if [ -f "${RELEASE_DIR}.zip" ]; then
+    rm -r ${RELEASE_DIR}.zip
+fi
+zip -r ${RELEASE_DIR}.zip ${RELEASE_DIR}
+cd ../
