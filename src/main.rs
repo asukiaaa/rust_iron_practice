@@ -16,22 +16,27 @@ use std::collections::HashMap;
 use std::path::Path;
 use time::precise_time_ns;
 
-struct ResponseTime;
+struct Middleware;
 
-impl typemap::Key for ResponseTime { type Value = u64; }
+impl typemap::Key for Middleware { type Value = u64; }
 
-impl BeforeMiddleware for ResponseTime {
+impl BeforeMiddleware for Middleware {
     fn before(&self, req: &mut Request) -> IronResult<()> {
-        req.extensions.insert::<ResponseTime>(precise_time_ns());
+        req.extensions.insert::<Middleware>(precise_time_ns());
         Ok(())
     }
 }
 
-impl AfterMiddleware for ResponseTime {
+impl AfterMiddleware for Middleware {
     fn after(&self, req: &mut Request, res: Response) -> IronResult<Response> {
-        let delta = precise_time_ns() - *req.extensions.get::<ResponseTime>().unwrap();
+        let delta = precise_time_ns() - *req.extensions.get::<Middleware>().unwrap();
         println!("Request took: {} ms", (delta as f64) / 1000000.0);
         Ok(res)
+    }
+
+    fn catch(&self, _: &mut Request, err: IronError) -> IronResult<Response> {
+        println!("{:?}", err);
+        Err(err)
     }
 }
 
@@ -69,7 +74,9 @@ fn hello_again_handler(req: &mut Request) -> IronResult<Response> {
         Some(&Value::String(ref name)) => {
             data.insert("name".to_string(), name.to_string());
         },
-        _ => {}
+        _ => {
+            data.insert("name".to_string(), "".to_string());
+        }
     };
     resp.set_mut(Template::new("hello_again", data)).set_mut(status::Ok);
     Ok(resp)
@@ -78,6 +85,7 @@ fn hello_again_handler(req: &mut Request) -> IronResult<Response> {
 fn main() {
     let mut router = Router::new();
     let mut hbse = HandlebarsEngine::new();
+    hbse.handlebars_mut().set_strict_mode(true);
     hbse.add(Box::new(DirectorySource::new("./templates", ".hbs")));
     if let Err(r) = hbse.reload() {
         panic!("{}", r);
@@ -96,9 +104,9 @@ fn main() {
         .mount("/public", Static::new(Path::new("public")));
 
     let mut chain = Chain::new(mount);
-    chain.link_before(ResponseTime);
-    chain.link_after(ResponseTime);
+    chain.link_before(Middleware);
     chain.link_after(hbse);
+    chain.link_after(Middleware);
     if let Err(r) = Iron::new(chain).http("0.0.0.0:80") {
         panic!("{}", r);
     }
