@@ -14,7 +14,7 @@ cp -r public releases/${RELEASE_DIR}/
 cp -r templates releases/${RELEASE_DIR}/
 cd releases
 if [ -f "${RELEASE_DIR}.zip" ]; then
-    rm -r ${RELEASE_DIR}.zip
+    rm ${RELEASE_DIR}.zip
 fi
 zip -r ${RELEASE_DIR}.zip ${RELEASE_DIR}
 cd ../
